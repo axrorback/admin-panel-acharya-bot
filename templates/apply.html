@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Hujjat topshirish</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f3f0ff, #e6e0ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 420px;
+            text-align: center;
+        }
+        .form-container img.logo {
+            width: 90px;
+            margin-bottom: 15px;
+        }
+        .form-container h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            color: #4a148c;
+        }
+        .timer {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .form-container input,
+        .form-container select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .form-container button {
+            background: #6a1b9a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .form-container button:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+        .flash {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .flash.success { background: #c8e6c9; color: #256029; }
+        .flash.danger { background: #ffcdd2; color: #b71c1c; }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    <h2>📑 Qabul uchun hujjat topshirish </h2>
+    <div class="timer" id="timer">15:00</div>
+
+    <!-- Flash xabarlar -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <!-- Ism va Familya -->
+        <input type="text" name="name" placeholder="Ismingiz" required>
+        <input type="text" name="surname" placeholder="Familyangiz" required>
+
+        <!-- Telefon -->
+        <input type="text" name="phone" placeholder="Telefon raqamingiz" required>
+
+        <!-- Fakultet tanlash -->
+        <select name="faculty" required>
+            <option value="">-- Fakultetni tanlang --</option>
+            {% for faculty in faculties %}
+                <option value="{{ faculty }}">{{ faculty }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Captcha -->
+        <div>
+            <img src="{{ url_for('captcha_image', otp_id=otp_id) }}"
+                 alt="Captcha"
+                 style="margin: 10px 0; border:1px solid #ccc;">
+            <input type="text" name="captcha" placeholder="Rasmdagi kodni kiriting" required>
+            <input type="hidden" name="otp_id" value="{{ otp_id }}">
+        </div>
+
+        <button type="submit" id="submitBtn">📝 Ariza yuborish</button>
+    </form>
+</div>
+
+<script>
+    // 15 daqiqa teskari sanoq
+    let time = 15 * 60;
+    let timer = document.getElementById("timer");
+    let btn = document.getElementById("submitBtn");
+
+    let countdown = setInterval(() => {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        timer.textContent = minutes + ":" + seconds;
+
+        if (time <= 0) {
+            clearInterval(countdown);
+            timer.textContent = "Vaqt tugadi ⛔";
+            btn.disabled = true;
+        }
+        time--;
+    }, 1000);
+</script>
+</body>
+</html>

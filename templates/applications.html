@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="bi bi-file-earmark-text"></i> Arizalar</h2>
+
+<table class="table table-bordered table-hover mt-3">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Ariza raqami</th>
+      <th>F.I.O</th>
+      <th>Telefon</th>
+      <th>Fakultet</th>
+      <th>Status</th>
+      <th>Amal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in applications %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ a.application_number }}</td>
+      <td>{{ a.full_name }}</td>
+      <td>{{ a.phone }}</td>
+      <td>{{ a.faculty }}</td>
+      <td>
+        {% if a.status == "pending" %}
+          <span class="badge bg-warning">Kutilmoqda</span>
+        {% elif a.status == "approved" %}
+          <span class="badge bg-success">Tasdiqlangan</span>
+        {% elif a.status == "rejected" %}
+          <span class="badge bg-danger">Rad etilgan</span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('application_detail', app_id=a.id) }}" class="btn btn-sm btn-primary">
+          <i class="bi bi-eye"></i> Ko‘rish
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

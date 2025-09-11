@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2><i class="bi bi-chat-dots"></i> Messages</h2>
+
+  <!-- Search form -->
+  <form class="row mb-3" method="get">
+    <div class="col-md-4">
+      <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Search messages...">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-dark" type="submit"><i class="bi bi-search"></i> Search</button>
+    </div>
+  </form>
+
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th><th>User</th><th>Message</th><th>Time</th><th>Reply</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in messages %}
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>@{{ m.username }}</td>
+        <td>{{ m.message_text }}</td>
+        <td>{{ m.created_at }}</td>
+        <td>
+          <!-- Reply button triggers modal -->
+          <button type="button" class="btn btn-primary btn-sm"
+                  data-bs-toggle="modal" data-bs-target="#replyModal{{ m.id }}">
+            <i class="bi bi-reply"></i> Reply
+          </button>
+
+          <!-- Modal -->
+          <div class="modal fade" id="replyModal{{ m.id }}" tabindex="-1" aria-labelledby="replyModalLabel{{ m.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="post" action="{{ url_for('reply_message', msg_id=m.id) }}">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="replyModalLabel{{ m.id }}">Reply to @{{ m.username }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <textarea name="reply_text" class="form-control" placeholder="Type your reply..." required></textarea>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Send</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Bootstrap 5 JS (Popper.js bilan birga bundle) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

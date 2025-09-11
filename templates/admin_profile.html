@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-dark text-white d-flex align-items-center">
+          <i class="bi bi-person-circle fs-4 me-2"></i>
+          <h4 class="mb-0">Admin Profil</h4>
+        </div>
+        <div class="card-body p-4">
+          <!-- Admin Info -->
+          <div class="mb-3">
+            <p><i class="bi bi-person-fill text-primary"></i> <strong>Ism:</strong> {{ admin.full_name }}</p>
+            <p><i class="bi bi-at text-primary"></i> <strong>Username:</strong> {{ admin.username }}</p>
+            <p><i class="bi bi-envelope-fill text-success"></i> <strong>Telegram ID:</strong> {{ admin.telegram_id }}</p>
+          </div>
+          <hr>
+
+          <!-- Change Password -->
+          <h5 class="mb-3 text-secondary">
+            <i class="bi bi-key-fill"></i> Parolni o‘zgartirish
+          </h5>
+          <form method="POST">
+            <div class="mb-3">
+              <label class="form-label">Eski parol</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                <input type="password" name="old_password" class="form-control" placeholder="Eski parolni kiriting" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Yangi parol</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield-lock-fill"></i></span>
+                <input type="password" name="new_password" class="form-control" placeholder="Yangi parol" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Yangi parolni tasdiqlash</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Parolni qayta kiriting" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-save"></i> Saqlash
+            </button>
+          </form>
+        </div>
+        <div class="card-footer text-center text-muted small">
+          <i class="bi bi-shield-lock"></i> Xavfsizlik uchun parolingizni hech kim bilan ulashmang
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="bi bi-shield-lock"></i> Admins</h2>
+<table class="table table-bordered table-hover mt-3">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th><th>Full Name</th><th>Username</th><th>Telegram ID</th><th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for a in admins %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.full_name }}</td>
+      <td>{{ a.username }}</td>
+      <td>{{ a.telegram_id }}</td>
+      <td>{{ a.created_at }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

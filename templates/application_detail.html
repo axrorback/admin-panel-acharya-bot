@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-file-earmark-text"></i> Ariza tafsilotlari</h2>
+  <a href="{{ url_for('applications') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Orqaga
+  </a>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3">
+  <div class="card-body">
+    <h5 class="card-title mb-3"><i class="bi bi-person-badge"></i> Umumiy ma'lumot</h5>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><strong>📋 Ariza raqami:</strong> {{ app.application_number }}</li>
+      <li class="list-group-item"><strong>👤 F.I.O:</strong> {{ app.full_name }}</li>
+      <li class="list-group-item"><strong>📞 Telefon:</strong> {{ app.phone }}</li>
+      <li class="list-group-item"><strong>🏫 Fakultet:</strong> {{ app.faculty }}</li>
+      <li class="list-group-item">
+        <strong>📌 Holati:</strong>
+        {% if app.status == "pending" %}
+          <span class="badge bg-warning text-dark">⏳ Kutilmoqda</span>
+        {% elif app.status == "approved" %}
+          <span class="badge bg-success">✅ Tasdiqlangan</span>
+        {% elif app.status == "rejected" %}
+          <span class="badge bg-danger">❌ Rad etilgan</span>
+        {% else %}
+          <span class="badge bg-secondary">{{ app.status }}</span>
+        {% endif %}
+      </li>
+      <li class="list-group-item"><strong>🕒 Yaratilgan:</strong> {{ app.created_at }}</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3 mt-4">
+  <div class="card-body">
+    <h5 class="card-title mb-3"><i class="bi bi-pencil-square"></i> Holatni yangilash</h5>
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Holatni tanlang:</label>
+        <select name="status" class="form-select">
+          <option value="pending" {% if app.status=="pending" %}selected{% endif %}>⏳ Kutilmoqda</option>
+          <option value="approved" {% if app.status=="approved" %}selected{% endif %}>✅ Tasdiqlash</option>
+          <option value="rejected" {% if app.status=="rejected" %}selected{% endif %}>❌ Rad etish</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Admin izohi (ixtiyoriy):</label>
+        <textarea name="admin_note" class="form-control" rows="3" placeholder="Masalan: Sizning hujjatlaringiz ko‘rib chiqildi..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> Saqlash va yuborish
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 🔴 O‘chirish tugmasi -->
+<div class="mt-4 text-end">
+  <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+    <i class="bi bi-trash"></i> Arizani o‘chirish
+  </button>
+</div>
+
+<!-- ⚠️ Modal oynasi -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle"></i> Diqqat!</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
+      </div>
+      <div class="modal-body">
+        Ushbu arizani <strong>butunlay o‘chirish</strong>ni istaysizmi? Bu amalni qaytarib bo‘lmaydi.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Bekor qilish
+        </button>
+        <form method="POST" action="{{ url_for('delete_application', app_id=app.id) }}">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Ha, o‘chirish
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

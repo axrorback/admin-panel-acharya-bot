@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="bi bi-people"></i> Users</h2>
+<table class="table table-bordered table-hover mt-3">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th><th>Full Name</th><th>Username</th><th>Lang</th><th>Joined</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.id }}</td>
+      <td>{{ u.full_name }}</td>
+      <td>@{{ u.username }}</td>
+      <td>{{ u.language }}</td>
+      <td>{{ u.joined_at }}</td>
+      <td><a href="{{ url_for('user_profile', user_id=u.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-eye"></i> View</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
