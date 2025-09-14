@@ -1,7 +1,9 @@
+import os
 import sqlite3
 from werkzeug.security import generate_password_hash
-
-DB_NAME = "bot_database.db"
+from dotenv import load_dotenv
+load_dotenv()
+DB_NAME = os.getenv('DB')
 
 username = input("Yangi admin username: ")
 password = input("Parol: ")

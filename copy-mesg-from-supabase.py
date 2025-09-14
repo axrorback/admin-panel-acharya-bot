@@ -1,12 +1,15 @@
 import sqlite3
 from supabase import create_client
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Supabase ulanishi
-SUPABASE_URL = "https://vlvwptbqqacqyyophsba.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsdndwdGJxcWFjcXl5b3Boc2JhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTU5OTYsImV4cCI6MjA2ODY5MTk5Nn0.gYmGKAxSyg27p0YE4_lepLtcj-myuaEj756kLpJ8O8U"
+SUPABASE_URL = os.getenv('URL')
+SUPABASE_KEY = os.getenv('KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-DB_NAME = "bot_database.db"
+DB_NAME = os.getenv('DB')
 conn = sqlite3.connect(DB_NAME)
 cursor = conn.cursor()
 

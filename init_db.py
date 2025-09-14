@@ -1,6 +1,8 @@
 import sqlite3
-
-DB_NAME = "bot_database.db"
+import os
+from dotenv import load_dotenv
+load_dotenv()
+DB_NAME = os.getenv('DB')
 
 conn = sqlite3.connect(DB_NAME)
 cursor = conn.cursor()

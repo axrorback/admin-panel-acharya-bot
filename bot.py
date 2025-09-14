@@ -29,9 +29,9 @@ def get_db_connection():
     return conn
 # .env fayldan tokenlarni olish
 load_dotenv()
-TOKEN = "8099179109:AAEHi2ZNiCW1xW2ESKsKFHeu2LfhH3r89us"
-CHANNEL_ID = "-1003051981115"
-ADMIN_ID =  [5789956459]
+TOKEN = os.getenv('TOKEN')
+CHANNEL_ID = os.getenv('CHANNEL_ID')
+ADMIN_ID =  os.getenv('ADMIN')
 
 # Bot va dispatcher obyektlarini yaratamiz
 bot = Bot(token=TOKEN)

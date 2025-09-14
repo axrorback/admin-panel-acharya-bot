@@ -7,14 +7,16 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import sqlite3, requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = "super-secret-key"
 
 DB_NAME = "bot_database.db"
-BOT_TOKEN = "8099179109:AAEHi2ZNiCW1xW2ESKsKFHeu2LfhH3r89us"   #
+BOT_TOKEN = os.getenv('TOKEN')   #
 API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-CHANNEL_ID = "-1003051981115"
+CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
