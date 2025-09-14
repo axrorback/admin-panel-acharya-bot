@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>✏️ Adminni tahrirlash</h2>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Full Name</label>
+    <input type="text" name="full_name" class="form-control" value="{{ admin.full_name }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input type="text" name="username" class="form-control" value="{{ admin.username }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Telegram ID</label>
+    <input type="text" name="telegram_id" class="form-control" value="{{ admin.telegram_id }}" required>
+  </div>
+  <button type="submit" class="btn btn-warning">💾 Saqlash</button>
+</form>
+{% endblock %}

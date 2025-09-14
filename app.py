@@ -101,7 +101,6 @@ def user_profile(user_id):
 
     return render_template("user_profile.html", user=user)
 
-
 # ========== ADMINS ==========
 @app.route("/admins")
 @login_required
@@ -110,6 +109,71 @@ def admins():
     admins = conn.execute("SELECT * FROM admins ORDER BY id DESC").fetchall()
     conn.close()
     return render_template("admins.html", admins=admins)
+
+
+@app.route("/admins/create", methods=["GET", "POST"])
+@login_required
+def create_admin():
+    if request.method == "POST":
+        full_name = request.form["full_name"]
+        username = request.form["username"]
+        telegram_id = request.form["telegram_id"]
+        password = request.form["password"]
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO admins (full_name, username, telegram_id, password_hash)
+            VALUES (?, ?, ?, ?)
+        """, (full_name, username, telegram_id, generate_password_hash(password)))
+        conn.commit()
+        conn.close()
+
+        flash("✅ Yangi admin qo‘shildi!")
+        return redirect(url_for("admins"))
+
+    return render_template("create_admin.html")
+
+
+@app.route("/admins/edit/<int:id>", methods=["GET", "POST"])
+@login_required
+def edit_admin(id):
+    conn = get_db_connection()
+    admin = conn.execute("SELECT * FROM admins WHERE id=?", (id,)).fetchone()
+
+    if not admin:
+        flash("❌ Admin topilmadi")
+        return redirect(url_for("admins"))
+
+    if request.method == "POST":
+        full_name = request.form["full_name"]
+        username = request.form["username"]
+        telegram_id = request.form["telegram_id"]
+
+        conn.execute("""
+            UPDATE admins SET full_name=?, username=?, telegram_id=? WHERE id=?
+        """, (full_name, username, telegram_id, id))
+        conn.commit()
+        conn.close()
+
+        flash("✏️ Admin yangilandi!")
+        return redirect(url_for("admins"))
+
+    conn.close()
+    return render_template("edit_admin.html", admin=admin)
+
+
+@app.route("/admins/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_admin(id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM admins WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    flash("🗑️ Admin o‘chirildi!")
+    return redirect(url_for("admins"))
+
+
 
 
 # ========== MESSAGES ==========
