@@ -6,14 +6,27 @@
     <label class="form-label">Full Name</label>
     <input type="text" name="full_name" class="form-control" value="{{ admin.full_name }}" required>
   </div>
+
   <div class="mb-3">
     <label class="form-label">Username</label>
     <input type="text" name="username" class="form-control" value="{{ admin.username }}" required>
   </div>
+
   <div class="mb-3">
     <label class="form-label">Telegram ID</label>
     <input type="text" name="telegram_id" class="form-control" value="{{ admin.telegram_id }}" required>
   </div>
+
+  <div class="mb-3">
+    <label class="form-label">Rol</label>
+    <select name="role" class="form-select" required>
+      <option value="superadmin" {% if admin.role == "superadmin" %}selected{% endif %}>👑 Superadmin</option>
+      <option value="moderator" {% if admin.role == "moderator" %}selected{% endif %}>🛠 Moderator</option>
+      <option value="viewer" {% if admin.role == "viewer" %}selected{% endif %}>👁 Viewer</option>
+    </select>
+  </div>
+
   <button type="submit" class="btn btn-warning">💾 Saqlash</button>
+  <a href="{{ url_for('admins') }}" class="btn btn-secondary">🔙 Orqaga</a>
 </form>
 {% endblock %}

@@ -51,7 +51,8 @@
 </head>
 <body>
 
-<!-- ✅ Navbar -->
+<!-- Navbar faqat admin kirganida -->
+{% if session.get('admin_id') %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('users') }}">
@@ -83,24 +84,27 @@
             <i class="bi bi-journal-text"></i> Applications
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('login_attempts') }}">
+            <i class="bi bi-shield-lock-fill"></i> Login Urinishlari
+          </a>
+        </li>
       </ul>
 
-      <!-- ✅ Admin Info -->
-      {% if session.get('admin_id') %}
-        <span class="navbar-text me-3">
-  👤 <a href="{{ url_for('admin_profile') }}" class="text-decoration-none text-warning">
-    <strong>{{ session['admin_name'] }}</strong>
-  </a>
-</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-outline-warning btn-sm">
-          <i class="bi bi-box-arrow-right"></i> Logout
+      <span class="navbar-text me-3">
+        👤 <a href="{{ url_for('admin_profile') }}" class="text-decoration-none text-warning">
+          <strong>{{ session['admin_name'] }}</strong>
         </a>
-      {% endif %}
+      </span>
+      <a href="{{ url_for('logout') }}" class="btn btn-outline-warning btn-sm">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
     </div>
   </div>
 </nav>
+{% endif %}
 
-<!-- ✅ Content -->
+<!-- Content -->
 <div class="container my-4">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -118,9 +122,19 @@
   </div>
 </div>
 
-<!-- ✅ Footer -->
-<footer>
-  <p>© 2025 Admin Panel | Developed with ❤️ using Flask & Bootstrap</p>
+<!-- Footer -->
+<footer style="
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #212529;
+  color: #aaa;
+  text-align: center;
+  padding: 15px;
+  border-top: 1px solid #333;
+">
+  <p class="mb-0">© 2025 Admin Panel | Developed with ❤️ using Flask & Bootstrap</p>
 </footer>
 
 </body>

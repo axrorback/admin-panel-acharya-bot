@@ -3,7 +3,7 @@ import string
 from datetime import datetime, timedelta
 import random
 from PIL import Image , ImageDraw , ImageFont
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, abort
 import sqlite3, requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -21,6 +21,18 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def require_role(*roles):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if "admin_role" not in session or session["admin_role"] not in roles:
+                # Ruxsat yo'q bo'lsa custom sahifaga redirect qilamiz
+                return render_template("no_permission.html")
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 
 # ========== AUTH ==========
 def login_required(f):
@@ -32,24 +44,111 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def mask_password(p: str) -> str:
+    if not p:
+        return ""
+    p = str(p)
+    if len(p) <= 2:
+        return "*" * len(p)
+    return p[0] + "*" * (len(p) - 2) + p[-1]
+
+def parse_user_agent(ua_string: str) -> str:
+    ua = (ua_string or "").strip()
+    if not ua:
+        return "Unknown"
+
+    browser = "Unknown"
+    platform = "Unknown"
+
+    # Browser
+    if "Edg" in ua or "Edge" in ua:
+        browser = "Edge"
+    elif "OPR" in ua or "Opera" in ua:
+        browser = "Opera"
+    elif "Chrome" in ua and "Chromium" not in ua and "Edg" not in ua and "OPR" not in ua:
+        browser = "Chrome"
+    elif "CriOS" in ua:
+        browser = "Chrome"
+    elif "Firefox" in ua:
+        browser = "Firefox"
+    elif "Safari" in ua and "Chrome" not in ua:
+        browser = "Safari"
+    elif "MSIE" in ua or "Trident" in ua:
+        browser = "Internet Explorer"
+
+    # Platform / OS
+    if "Windows" in ua:
+        platform = "Windows"
+    elif "Macintosh" in ua or "Mac OS X" in ua:
+        platform = "macOS"
+    elif "Android" in ua:
+        platform = "Android"
+    elif "iPhone" in ua or "iPad" in ua or "iPod" in ua:
+        platform = "iOS"
+    elif "Linux" in ua:
+        platform = "Linux"
+
+    if browser == "Unknown" and platform == "Unknown":
+        return ua[:200]
+
+    return f"{browser} on {platform}"
+
+def log_login_attempt(username: str, password: str, status: str, db_path=DB_NAME):
+    try:
+        ua_string = request.headers.get("User-Agent", "")
+        device = parse_user_agent(ua_string)
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "Unknown"
+        if isinstance(ip, str) and "," in ip:
+            ip = ip.split(",")[0].strip()
+
+        masked = mask_password(password)
+
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO login_attempts (username, password, ip_address, device, user_agent, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (username, masked, ip, device, ua_string, status))
+        conn.commit()
+
+        # Baza mazmunini print qilamiz
+        cur.execute("SELECT * FROM login_attempts")
+        rows = cur.fetchall()
+        print("💾 Login Attempts Table:")
+        for row in rows:
+            print(dict(zip([column[0] for column in cur.description], row)))
+
+    except Exception as e:
+        print("⚠️ login log error:", e)
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         conn = get_db_connection()
         admin = conn.execute("SELECT * FROM admins WHERE username = ?", (username,)).fetchone()
-        conn.close()
 
         if admin and check_password_hash(admin["password_hash"], password):
+            log_login_attempt(username, password, "success")
             session["admin_id"] = admin["id"]
             session["admin_name"] = admin["full_name"]
+            session["admin_role"] = admin["role"] or "viewer"
+            conn.execute("UPDATE admins SET last_login = CURRENT_TIMESTAMP WHERE id = ?", (admin["id"],))
+            conn.commit()
+            conn.close()
             flash("Xush kelibsiz!", "success")
             return redirect(url_for("users"))
         else:
+            log_login_attempt(username, password, "fail")
             flash("❌ Login yoki parol noto‘g‘ri!", "danger")
+            conn.close()
 
     return render_template("login.html")
 
@@ -104,6 +203,7 @@ def user_profile(user_id):
 # ========== ADMINS ==========
 @app.route("/admins")
 @login_required
+@require_role("superadmin", "moderator")
 def admins():
     conn = get_db_connection()
     admins = conn.execute("SELECT * FROM admins ORDER BY id DESC").fetchall()
@@ -113,6 +213,7 @@ def admins():
 
 @app.route("/admins/create", methods=["GET", "POST"])
 @login_required
+@require_role("superadmin")
 def create_admin():
     if request.method == "POST":
         full_name = request.form["full_name"]
@@ -122,9 +223,9 @@ def create_admin():
 
         conn = get_db_connection()
         conn.execute("""
-            INSERT INTO admins (full_name, username, telegram_id, password_hash)
-            VALUES (?, ?, ?, ?)
-        """, (full_name, username, telegram_id, generate_password_hash(password)))
+            INSERT INTO admins (full_name, username, telegram_id, password_hash, role)
+            VALUES (?, ?, ?, ?, ?)
+        """, (full_name, username, telegram_id, generate_password_hash(password), "moderator"))  # default role moderator
         conn.commit()
         conn.close()
 
@@ -136,6 +237,7 @@ def create_admin():
 
 @app.route("/admins/edit/<int:id>", methods=["GET", "POST"])
 @login_required
+@require_role("superadmin")
 def edit_admin(id):
     conn = get_db_connection()
     admin = conn.execute("SELECT * FROM admins WHERE id=?", (id,)).fetchone()
@@ -148,10 +250,11 @@ def edit_admin(id):
         full_name = request.form["full_name"]
         username = request.form["username"]
         telegram_id = request.form["telegram_id"]
+        role = request.form["role"]   # 🔑 yangi: admin roli ham o‘zgartirilishi mumkin
 
         conn.execute("""
-            UPDATE admins SET full_name=?, username=?, telegram_id=? WHERE id=?
-        """, (full_name, username, telegram_id, id))
+            UPDATE admins SET full_name=?, username=?, telegram_id=?, role=? WHERE id=?
+        """, (full_name, username, telegram_id, role, id))
         conn.commit()
         conn.close()
 
@@ -164,6 +267,7 @@ def edit_admin(id):
 
 @app.route("/admins/delete/<int:id>", methods=["POST"])
 @login_required
+@require_role("superadmin")
 def delete_admin(id):
     conn = get_db_connection()
     conn.execute("DELETE FROM admins WHERE id=?", (id,))
@@ -484,8 +588,14 @@ def admin_profile():
     conn.close()
     return render_template("admin_profile.html", admin=admin)
 
-
-
+@app.route("/login-attempts")
+@require_role('superadmin')
+@login_required
+def login_attempts():
+    conn = get_db_connection()
+    attempts = conn.execute("SELECT * FROM login_attempts ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template("login_attempts.html", attempts=attempts)
 
 
 if __name__ == "__main__":

@@ -11,9 +11,19 @@
         <div class="card-body p-4">
           <!-- Admin Info -->
           <div class="mb-3">
-            <p><i class="bi bi-person-fill text-primary"></i> <strong>Ism:</strong> {{ admin.full_name }}</p>
-            <p><i class="bi bi-at text-primary"></i> <strong>Username:</strong> {{ admin.username }}</p>
-            <p><i class="bi bi-envelope-fill text-success"></i> <strong>Telegram ID:</strong> {{ admin.telegram_id }}</p>
+            <p><i class="bi bi-person-fill text-primary"></i>
+              <strong>Ism:</strong> {{ admin.full_name }}
+            </p>
+            <p><i class="bi bi-at text-primary"></i>
+              <strong>Username:</strong> {{ admin.username }}
+            </p>
+            <p><i class="bi bi-envelope-fill text-success"></i>
+              <strong>Telegram ID:</strong> {{ admin.telegram_id }}
+            </p>
+            <p><i class="bi bi-shield-lock-fill text-warning"></i>
+              <strong>Rol:</strong>
+              <span class="badge bg-secondary">{{ admin.role }}</span>
+            </p>
           </div>
           <hr>
 

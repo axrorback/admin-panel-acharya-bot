@@ -2,12 +2,21 @@
 {% block content %}
 <h2><i class="bi bi-shield-lock"></i> Admins</h2>
 
-<a href="{{ url_for('create_admin') }}" class="btn btn-success mb-3">➕ Admin qo‘shish</a>
+<!-- Yangi admin qo‘shish -->
+<a href="{{ url_for('create_admin') }}" class="btn btn-success mb-3">
+  <i class="bi bi-person-plus"></i> Yangi admin qo‘shish
+</a>
 
-<table class="table table-bordered table-hover mt-3">
+<table class="table table-bordered table-hover mt-3 align-middle">
   <thead class="table-dark">
     <tr>
-      <th>ID</th><th>Full Name</th><th>Username</th><th>Telegram ID</th><th>Created</th><th>Actions</th>
+      <th>ID</th>
+      <th>Full Name</th>
+      <th>Username</th>
+      <th>Telegram ID</th>
+      <th>Role</th>
+      <th>Created</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -17,11 +26,25 @@
       <td>{{ a.full_name }}</td>
       <td>{{ a.username }}</td>
       <td>{{ a.telegram_id }}</td>
+      <td>
+        {% if a.role == "superadmin" %}
+          <span class="badge bg-danger">Superadmin</span>
+        {% elif a.role == "moderator" %}
+          <span class="badge bg-primary">Moderator</span>
+        {% else %}
+          <span class="badge bg-secondary">Viewer</span>
+        {% endif %}
+      </td>
       <td>{{ a.created_at }}</td>
       <td>
-        <a href="{{ url_for('edit_admin', id=a.id) }}" class="btn btn-sm btn-warning">✏️ Edit</a>
-        <form method="post" action="{{ url_for('delete_admin', id=a.id) }}" style="display:inline;">
-          <button class="btn btn-sm btn-danger" onclick="return confirm('O‘chirishni tasdiqlaysizmi?')">🗑️ Delete</button>
+        <a href="{{ url_for('edit_admin', id=a.id) }}" class="btn btn-sm btn-warning">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form action="{{ url_for('delete_admin', id=a.id) }}" method="post" style="display:inline-block;"
+              onsubmit="return confirm('Adminni o‘chirishni tasdiqlaysizmi?');">
+          <button type="submit" class="btn btn-sm btn-danger">
+            <i class="bi bi-trash"></i> Delete
+          </button>
         </form>
       </td>
     </tr>

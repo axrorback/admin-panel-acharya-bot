@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     full_name TEXT,
     username TEXT,
     language TEXT DEFAULT 'uz',
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_active TIMESTAMP
 )
 """)
 
@@ -25,6 +26,9 @@ CREATE TABLE IF NOT EXISTS admins (
     full_name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    role TEXT DEFAULT 'viewer',  -- superadmin, moderator, viewer
+    is_active BOOLEAN DEFAULT 1,
+    last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
@@ -38,12 +42,12 @@ CREATE TABLE IF NOT EXISTS user_messages (
     message_text TEXT NOT NULL,
     admin_msg_id BIGINT,
     language TEXT,
+    is_answered BOOLEAN DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
 
 # ========== APPLICATIONS jadvali ==========
-# Applications jadvali
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS applications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +57,8 @@ CREATE TABLE IF NOT EXISTS applications (
     phone TEXT NOT NULL,
     faculty TEXT NOT NULL,
     status TEXT DEFAULT 'Yangi',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
 
@@ -69,6 +74,19 @@ CREATE TABLE IF NOT EXISTS otps (
 )
 """)
 
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    password TEXT,               -- kiritilgan parol (keyin frontendda masklanadi)
+    ip_address TEXT,
+    device TEXT,                 -- Chrome on MacOS, Edge on Windows va hokazo
+    user_agent TEXT,             -- to‘liq raw UA string
+    status TEXT,                 -- success yoki fail
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
 conn.commit()
 conn.close()
-print("✅ Database yaratildi va tayyor!")
+print("✅ Database yangilandi va tayyor!")

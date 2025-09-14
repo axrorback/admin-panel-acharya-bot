@@ -6,18 +6,32 @@
     <label class="form-label">Full Name</label>
     <input type="text" name="full_name" class="form-control" required>
   </div>
+
   <div class="mb-3">
     <label class="form-label">Username</label>
     <input type="text" name="username" class="form-control" required>
   </div>
+
   <div class="mb-3">
     <label class="form-label">Telegram ID</label>
     <input type="text" name="telegram_id" class="form-control" required>
   </div>
+
   <div class="mb-3">
     <label class="form-label">Parol</label>
     <input type="password" name="password" class="form-control" required>
   </div>
+
+  <div class="mb-3">
+    <label class="form-label">Rolni tanlang</label>
+    <select name="role" class="form-select" required>
+      <option value="superadmin">👑 Superadmin</option>
+      <option value="moderator">🛠 Moderator</option>
+      <option value="viewer">👁 Viewer</option>
+    </select>
+  </div>
+
   <button type="submit" class="btn btn-success">✅ Qo‘shish</button>
+  <a href="{{ url_for('admins') }}" class="btn btn-secondary">🔙 Orqaga</a>
 </form>
 {% endblock %}
