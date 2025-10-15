@@ -1,23 +1,110 @@
 {% extends "base.html" %}
 {% block content %}
 <h2><i class="bi bi-people"></i> Users</h2>
-<table class="table table-bordered table-hover mt-3">
-  <thead class="table-dark">
+
+<!-- 🔍 AJAX Search -->
+<div class="position-relative mb-3">
+  <input type="text" id="search-input" class="form-control"
+         placeholder="Search users..." autocomplete="off">
+  <div id="suggestions-box"
+       class="list-group position-absolute w-100 shadow-sm"
+       style="z-index:1000; display:none;"></div>
+</div>
+
+<!-- 👥 Users jadvali -->
+<table class="table table-bordered table-hover mt-3 align-middle">
+  <thead class="table-dark text-center">
     <tr>
-      <th>ID</th><th>Full Name</th><th>Username</th><th>Lang</th><th>Joined</th><th></th>
+      <th>ID</th>
+      <th>Full Name</th>
+      <th>Username</th>
+      <th>Lang</th>
+      <th>Joined</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-  {% for u in users %}
-    <tr>
-      <td>{{ u.id }}</td>
-      <td>{{ u.full_name }}</td>
-      <td>@{{ u.username }}</td>
-      <td>{{ u.language }}</td>
-      <td>{{ u.joined_at }}</td>
-      <td><a href="{{ url_for('user_profile', user_id=u.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-eye"></i> View</a></td>
-    </tr>
-  {% endfor %}
+  {% if users %}
+    {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.full_name }}</td>
+        <td>@{{ u.username }}</td>
+        <td>{{ u.language }}</td>
+        <td>{{ u.joined_at }}</td>
+        <td class="text-center">
+          <a href="{{ url_for('user_profile', user_id=u.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-eye"></i> View
+          </a>
+          <form action="{{ url_for('delete_user', user_id=u.id) }}" method="POST"
+                style="display:inline;" onsubmit="return confirm('❗ Userni o‘chirmoqchimisiz?');">
+            <button type="submit" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="6" class="text-center text-muted">🚫 User topilmadi</td></tr>
+  {% endif %}
   </tbody>
 </table>
+
+<!-- 📑 Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div>
+    Page {{ page }} / {{ total_pages }}
+  </div>
+  <div>
+    {% if page > 1 %}
+      <a href="{{ url_for('users', page=page-1) }}" class="btn btn-outline-secondary btn-sm">
+        ⬅️ Previous
+      </a>
+    {% endif %}
+
+    {% if page < total_pages %}
+      <a href="{{ url_for('users', page=page+1) }}" class="btn btn-outline-secondary btn-sm">
+        Next ➡️
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 📜 AJAX search JS -->
+<script>
+const searchInput = document.getElementById("search-input");
+const suggestionsBox = document.getElementById("suggestions-box");
+
+searchInput.addEventListener("input", async function() {
+  let q = this.value.trim();
+  if (q.length < 1) {
+    suggestionsBox.style.display = "none";
+    return;
+  }
+
+  let response = await fetch(`/users/search?q=${encodeURIComponent(q)}`);
+  let data = await response.json();
+
+  suggestionsBox.innerHTML = "";
+  if (data.results.length > 0) {
+    data.results.forEach(user => {
+      let item = document.createElement("a");
+      item.classList.add("list-group-item", "list-group-item-action");
+      item.href = `/users/${user.id}`;
+      item.innerHTML = `<b>${user.full_name}</b> (@${user.username})`;
+      suggestionsBox.appendChild(item);
+    });
+    suggestionsBox.style.display = "block";
+  } else {
+    suggestionsBox.style.display = "none";
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+    suggestionsBox.style.display = "none";
+  }
+});
+</script>
 {% endblock %}

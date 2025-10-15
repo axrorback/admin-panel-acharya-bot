@@ -19,7 +19,7 @@ API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME,timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -161,17 +161,30 @@ def logout():
     flash("Chiqdingiz!", "info")
     return redirect(url_for("login"))
 
-
-# ========== USERS ==========
 @app.route("/")
 @login_required
 def users():
+    page = int(request.args.get("page", 1))
+    per_page = 50
+    offset = (page - 1) * per_page
+
     conn = get_db_connection()
-    users = conn.execute("SELECT * FROM users ORDER BY id DESC").fetchall()
+    rows = conn.execute(
+        "SELECT * FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
+        (per_page, offset)
+    ).fetchall()
+
+    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
     conn.close()
-    return render_template("users.html", users=users)
 
+    total_pages = (total_users + per_page - 1) // per_page  # umumiy sahifalar soni
 
+    return render_template(
+        "users.html",
+        users=rows,
+        page=page,
+        total_pages=total_pages
+    )
 @app.route("/users/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def user_profile(user_id):
@@ -410,30 +423,37 @@ def apply():
 
     if request.method == "POST":
         # formdan kelgan qiymatlar
-        name = request.form["name"]
-        surname = request.form["surname"]
-        full_name = f"{name} {surname}"
+        name = request.form.get("name", "").strip()
+        surname = request.form.get("surname", "").strip()
+        full_name = f"{name} {surname}".strip()
 
-        phone = request.form["phone"]
-        faculty = request.form["faculty"]
-        otp_id = request.form["otp_id"]
-        otp_code = request.form["captcha"]
+        phone = request.form.get("phone", "").strip()
+        faculty = request.form.get("faculty")
+        otp_id = request.form.get("otp_id")
+        otp_code = request.form.get("captcha")
+
+        # Telefon formatini to‘liq qilib olish
+        if not phone.startswith("+998"):
+            phone = "+998" + phone
 
         # OTP tekshirish
         conn = get_db_connection()
-        otp = conn.execute("SELECT * FROM otps WHERE id = ? AND is_used = 0", (otp_id,)).fetchone()
+        otp = conn.execute(
+            "SELECT * FROM otps WHERE id = ? AND is_used = 0",
+            (otp_id,)
+        ).fetchone()
 
         if not otp:
             flash("❌ OTP topilmadi!", "danger")
-            return redirect(url_for("apply"))
+            return redirect(url_for("apply", user_id=request.args.get("user_id")))
 
         if datetime.strptime(otp["expires_at"], "%Y-%m-%d %H:%M:%S") < datetime.now():
             flash("❌ Kod muddati tugagan!", "danger")
-            return redirect(url_for("apply"))
+            return redirect(url_for("apply", user_id=request.args.get("user_id")))
 
         if otp["code"] != otp_code:
             flash("❌ Kod noto‘g‘ri!", "danger")
-            return redirect(url_for("apply"))
+            return redirect(url_for("apply", user_id=request.args.get("user_id")))
 
         # ✅ Arizani saqlash
         app_number = generate_application_number()
@@ -478,7 +498,6 @@ def apply():
 
     otp_id, _ = generate_otp(user_id)
     return render_template("apply.html", faculties=faculties, otp_id=otp_id)
-
 # ===================== THANKS PAGE =====================
 @app.route("/thanks/<app_number>")
 def thanks(app_number):
@@ -599,6 +618,47 @@ def login_attempts():
     conn.close()
     return render_template("login_attempts.html", attempts=attempts)
 
+@app.route("/users/delete/<int:user_id>", methods=["POST"])
+@login_required
+@require_role("superadmin", "moderator")
+def delete_user(user_id):
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
+    if not user:
+        flash("❌ Bunday user topilmadi!", "danger")
+        conn.close()
+        return redirect(url_for("users"))
+
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+    flash("🗑️ User o‘chirildi!", "warning")
+    return redirect(url_for("users"))
+@app.route("/users/search")
+@login_required
+def users_search():
+    q = request.args.get("q", "").strip()
+    conn = get_db_connection()
+
+    if not q:
+        return {"results": []}
+
+    rows = conn.execute(
+        "SELECT id, full_name, username FROM users "
+        "WHERE full_name LIKE ? OR username LIKE ? "
+        "ORDER BY id DESC LIMIT 10",
+        (f"%{q}%", f"%{q}%")
+    ).fetchall()
+    conn.close()
+
+    results = [
+        {"id": r["id"], "full_name": r["full_name"], "username": r["username"]}
+        for r in rows
+    ]
+
+    return {"results": results}
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False,host='0.0.0.0',port=9002)

@@ -87,11 +87,31 @@
 
     <form method="POST">
         <!-- Ism va Familya -->
-        <input type="text" name="name" placeholder="Ismingiz" required>
-        <input type="text" name="surname" placeholder="Familyangiz" required>
+        <input type="text" name="name" placeholder="Ismingiz"
+               pattern="^[A-Za-z\u0400-\u04FF]{2,40}$"
+               title="Faqat harflar (kamida 2 ta, ko‘pi bilan 40 ta)"
+               required>
+        <input type="text" name="surname" placeholder="Familyangiz"
+               pattern="^[A-Za-z\u0400-\u04FF]{2,40}$"
+               title="Faqat harflar (kamida 2 ta, ko‘pi bilan 40 ta)"
+               required>
 
         <!-- Telefon -->
-        <input type="text" name="phone" placeholder="Telefon raqamingiz" required>
+        <label style="display:block; text-align:left; font-size:14px; color:#4a148c; margin-top:10px;">
+            Telefon raqamingiz:
+        </label>
+        <div style="display: flex; align-items: center; margin:10px 0;">
+            <span style="background:#f3f3f3; padding:12px; border:1px solid #ccc;
+                         border-radius:10px 0 0 10px; font-size:15px;">+998</span>
+            <input type="tel"
+                   name="phone"
+                   placeholder="90 123 45 67"
+                   pattern="^\d{9}$"
+                   title="Telefon raqamni 901234567 formatida kiriting"
+                   style="flex:1; padding:12px 15px; border:1px solid #ccc;
+                          border-left:0; border-radius:0 10px 10px 0; font-size:15px;"
+                   required>
+        </div>
 
         <!-- Fakultet tanlash -->
         <select name="faculty" required>

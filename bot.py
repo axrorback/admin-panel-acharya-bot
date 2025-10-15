@@ -11,7 +11,7 @@ import aiogram
 import supabase
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand, BotCommandScopeDefault, \
-    MenuButtonCommands, InputMediaPhoto, FSInputFile
+    MenuButtonCommands, InputMediaPhoto, FSInputFile, MenuButtonWebApp, WebAppInfo
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
@@ -22,6 +22,22 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO)
 from supabase import create_client , Client
 from aiogram.types import Message
+# Tilga mos Main Button matnlari
+MAIN_BUTTON_TEXT = {
+    "uz": "📝 Ariza topshirish",
+    "en": "📝 Submit Application",
+    "ru": "📝 Подать заявку"
+}
+
+async def set_apply_main_button(bot: Bot, chat_id: int, user_id: int, lang: str = "uz"):
+    """
+    Chat pastidagi Main Button (Mini App) ni tilga mos o'rnatadi
+    """
+    main_button = MenuButtonWebApp(
+        text=MAIN_BUTTON_TEXT.get(lang, "📝 Ariza topshirish"),
+        web_app=WebAppInfo(url=f"https://api.coderboys.uz/apply?user_id={user_id}")
+    )
+    await bot.set_chat_menu_button(chat_id=chat_id, menu_button=main_button)
 DB_NAME = "bot_database.db"
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
@@ -31,8 +47,8 @@ def get_db_connection():
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
-ADMIN_ID =  os.getenv('ADMIN')
-# Bot va dispatcher obyektlarini yaratamiz
+ADMIN_ID = os.getenv("ADMIN", "").split(",") # Bot va dispatcher obyektlarini yaratamiz
+ADMIN_ID = [int(a) for a in ADMIN_ID]
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -49,12 +65,6 @@ class ContactForm(StatesGroup):
 # Foydalanuvchi tillarini saqlash
 user_language = {}
 
-async def set_bot_menu():
-    commands = [
-        BotCommand(command="start", description="Botni yangilash"),
-    ]
-    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
-    await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
 
 def main_menu(language):
     buttons = {
@@ -125,6 +135,8 @@ async def start_command(message: types.Message):
         "tilni tanlang / выберите язык / select language",
         reply_markup=keyboard
     )
+    await set_apply_main_button(bot=message.bot, chat_id=message.chat.id, user_id=message.from_user.id, lang="uz")
+
 @dp.callback_query(F.data.startswith("lang_"))
 async def set_language(call: types.CallbackQuery):
     language = call.data.split("_")[1]
@@ -574,7 +586,7 @@ async def handle_apply(call: types.CallbackQuery):
             [InlineKeyboardButton(
                 text={"uz": "📝 Ariza yuborish (Flask)", "en": "📝 Submit Application (Flask)",
                       "ru": "📝 Отправить заявку (Flask)"}[lang],
-                url=f"https://127.0.0.1:5000/apply?user_id={call.from_user.id}"
+                url=f"https://api.coderboys.uz/apply?user_id={call.from_user.id}"
             )],
             [InlineKeyboardButton(
                 text={"uz": "🌐 Sayt orqali hujjat topshirish", "en": "🌐 Submit via Website", "ru": "🌐 Подать через сайт"}[lang],
@@ -1094,7 +1106,6 @@ async def handle_check_status(call: types.CallbackQuery):
 
 
 async def main():
-    dp.startup.register(set_bot_menu)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
