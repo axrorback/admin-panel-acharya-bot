@@ -3,10 +3,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 DB_NAME = os.getenv('DB')
-
 conn = sqlite3.connect(DB_NAME)
 cursor = conn.cursor()
-
 # ========== USERS jadvali ==========
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
@@ -19,7 +17,6 @@ CREATE TABLE IF NOT EXISTS users (
     last_active TIMESTAMP
 )
 """)
-
 # ========== ADMINS jadvali ==========
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS admins (
@@ -34,7 +31,6 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
-
 # ========== USER_MESSAGES jadvali ==========
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS user_messages (
@@ -48,7 +44,6 @@ CREATE TABLE IF NOT EXISTS user_messages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
-
 # ========== APPLICATIONS jadvali ==========
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS applications (
@@ -63,7 +58,6 @@ CREATE TABLE IF NOT EXISTS applications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
-
 # ========== OTP (CAPTCHA) jadvali ==========
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS otps (
@@ -75,7 +69,6 @@ CREATE TABLE IF NOT EXISTS otps (
     FOREIGN KEY (user_id) REFERENCES users(telegram_id)
 )
 """)
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS login_attempts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
