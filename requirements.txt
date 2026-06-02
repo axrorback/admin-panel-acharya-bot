@@ -1,0 +1,6 @@
+aiogram
+Flask
+Pillow
+python-dotenv
+requests
+supabase
